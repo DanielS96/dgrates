@@ -15,6 +15,7 @@ URL_USD_CNY = "https://finance.rambler.ru/calculators/converter/1-USD-CNY/"
 
 # CSS-селекторы
 CSS_RATE_RUB_USDT = "#undertable > div.m-hint > span:nth-child(2) > span:nth-child(5) > span"
+CSS_RATE_USD_EUR = "#calculator > div > div > div.preset--light > div > div > div > div.m-b-3 > div > div > div._midMarketRateAmount_lbutx_138 > span:nth-child(2)"
 CSS_RATE_USD_CNY = "#app > div.dTSkA6xB.commercial-branding > div > div.yP4MAOpL > div.BgJ8We0r.so0OkpgH > div.yw7YVg6D > div.N_cub_8e > div:nth-child(1) > div:nth-child(3) > span.x9LZBMwk"
 
 HEADERS = {
@@ -58,62 +59,43 @@ def get_rub_usdt() -> float | None:
 
 def get_eur_usdt() -> float | None:
     """
-    Парсит курс EUR → USDT с Wise.com.
-    Полная диагностика с сохранением результатов.
+    Парсит курс EUR → USDT с Wise.com по CSS-селектору.
     """
     print("=" * 50)
-    print("🔍 EUR→USDT: НАЧИНАЕМ ПАРСИНГ WISE")
+    print("🔍 EUR→USDT: НАЧИНАЕМ ПАРСИНГ WISE (по CSS-селектору)")
     print("=" * 50)
 
-    # Шаг 1: Загружаем страницу
-    print("\n🔍 Шаг 1: загружаем страницу...")
     html = fetch_url(URL_USD_EUR)
     if not html:
-        print("❌ Шаг 1: страница не загружена")
-        return None
-    print("✅ Шаг 1: страница загружена")
-    
-    # Шаг 2: Ищем паттерн
-    print("\n🔍 Шаг 2: ищем паттерн '1 USD = X,XXXX EUR'...")
-    pattern = r'1\s*USD\s*=\s*([\d,]+)\s*EUR'
-    match = re.search(pattern, html)
-    
-    if not match:
-        print("❌ Шаг 2: паттерн не найден")
+        print("❌ Страница не загружена")
         return None
     
-    raw_value = match.group(1)
-    print(f"✅ Шаг 2: найден raw_value = '{raw_value}'")
+    soup = BeautifulSoup(html, "html.parser")
     
-    # Шаг 3: Преобразуем запятую в точку
-    print(f"\n🔍 Шаг 3: преобразуем запятую в точку...")
-    value_str = raw_value.replace(",", ".")
-    print(f"   raw_value = '{raw_value}'")
-    print(f"   value_str = '{value_str}'")
+    # Ваш точный CSS-селектор
+    selector = CSS_RATE_USD_EUR
+    elements = soup.select(selector)
     
-    # Шаг 4: Преобразуем в число
-    print(f"\n🔍 Шаг 4: преобразуем в число...")
-    try:
-        value = float(value_str)
-        print(f"✅ Шаг 4: успешно! value = {value}")
-        print(f"   Тип: {type(value)}")
-        print(f"   repr: {repr(value)}")
+    if elements:
+        text = elements[0].get_text(strip=True)
+        print(f"✅ Элемент найден: '{text}'")
         
-        # СОХРАНЯЕМ РЕЗУЛЬТАТ В ОТДЕЛЬНЫЙ ФАЙЛ ДЛЯ ДИАГНОСТИКИ
-        debug_data = {
-            "raw_value": raw_value,
-            "value_str": value_str,
-            "value": value,
-            "value_type": str(type(value)),
-            "value_repr": repr(value)
-        }
-        with open("debug_eur.json", "w", encoding="utf-8") as f:
-            json.dump(debug_data, f, ensure_ascii=False, indent=2)
-        print("📄 debug_eur.json сохранён")
-        
-        return value
-    except ValueError as e:
-        print(f"❌ Шаг 4: ошибка преобразования: {e}")
+        # Извлекаем число (формат может быть "0,8759" или "0.8759")
+        match = re.search(r"([\d,]+)", text)
+        if match:
+            value_str = match.group(1).replace(",", ".")
+            try:
+                value = float(value_str)
+                print(f"✅ EUR→USDT: {value} EUR за 1 USDT")
+                return value
+            except ValueError as e:
+                print(f"❌ Ошибка преобразования '{value_str}': {e}")
+                return None
+        else:
+            print("❌ Число не найдено в тексте")
+            return None
+    else:
+        print("❌ Элемент не найден по селектору")
         return None
 
 def get_cny_usdt() -> float | None:
@@ -171,7 +153,7 @@ def load_old_rates():
 
 def main():
     print("=" * 50)
-    print("🔄 Обновление курсов All Rates (с диагностикой)")
+    print("🔄 Обновление курсов All Rates")
     print("=" * 50)
 
     # Получаем курсы
@@ -179,39 +161,22 @@ def main():
     eur_usdt = get_eur_usdt()
     cny_usdt = get_cny_usdt()
 
-    # ДИАГНОСТИКА: точные значения
+    # Диагностика
     print("\n" + "=" * 50)
-    print("📊 ТОЧНЫЕ ЗНАЧЕНИЯ ИЗ ПАРСИНГА:")
-    print(f"  RUB→USDT: {repr(rub_usdt)} (тип: {type(rub_usdt)})")
-    print(f"  EUR→USDT: {repr(eur_usdt)} (тип: {type(eur_usdt)})")
-    print(f"  CNY→USDT: {repr(cny_usdt)} (тип: {type(cny_usdt)})")
+    print("📊 РЕЗУЛЬТАТЫ ПАРСИНГА:")
+    print(f"  RUB→USDT: {repr(rub_usdt)}")
+    print(f"  EUR→USDT: {repr(eur_usdt)}")
+    print(f"  CNY→USDT: {repr(cny_usdt)}")
     print("=" * 50)
 
     old = load_old_rates()
     
-    # Формируем объект с курсами
     rates = {
         "rub_usdt": rub_usdt if rub_usdt is not None else old.get("rub_usdt"),
         "eur_usdt": eur_usdt if eur_usdt is not None else old.get("eur_usdt"),
         "cny_usdt": cny_usdt if cny_usdt is not None else old.get("cny_usdt"),
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
-
-    # ДИАГНОСТИКА: что попадает в JSON (пошагово)
-    print("\n" + "=" * 50)
-    print("📝 ПОШАГОВАЯ ПРОВЕРКА JSON:")
-    print(f"  rates['eur_usdt'] = {repr(rates['eur_usdt'])}")
-    print(f"  rates['eur_usdt'] тип: {type(rates['eur_usdt'])}")
-    
-    # Пробуем преобразовать в JSON
-    try:
-        json_str = json.dumps(rates, ensure_ascii=False, indent=2)
-        print("✅ JSON успешно создан:")
-        print(json_str)
-    except Exception as e:
-        print(f"❌ Ошибка при создании JSON: {e}")
-    
-    print("=" * 50)
 
     if rates["rub_usdt"] is None and rates["eur_usdt"] is None and rates["cny_usdt"] is None:
         print("❌ Все курсы недоступны! Выход.")
