@@ -59,13 +59,15 @@ def get_rub_usdt() -> float | None:
 def get_eur_usdt() -> float | None:
     """
     Парсит курс EUR → USDT с Wise.com.
+    Использует регулярное выражение для поиска "1 USD = X,XXXX EUR"
     Полная диагностика каждого шага.
     """
     print("=" * 50)
-    print("🔍 EUR→USDT: НАЧИНАЕМ ПАРСИНГ")
+    print("🔍 EUR→USDT: НАЧИНАЕМ ПАРСИНГ WISE")
     print("=" * 50)
     
     # Шаг 1: Загружаем страницу
+    print("\n🔍 Шаг 1: загружаем страницу...")
     html = fetch_url(URL_USD_EUR)
     if not html:
         print("❌ Шаг 1: страница не загружена")
