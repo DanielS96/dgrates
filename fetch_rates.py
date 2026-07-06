@@ -59,36 +59,47 @@ def get_rub_usdt() -> float | None:
 def get_eur_usdt() -> float | None:
     """
     Парсит курс EUR → USDT с Wise.com.
-    Использует регулярное выражение для поиска "1 USD = X,XXXX EUR"
+    Полная диагностика каждого шага.
     """
-    print("=" * 40)
-    print("🔍 EUR→USDT: парсим Wise.com через регулярку")
-    print("=" * 40)
+    print("=" * 50)
+    print("🔍 EUR→USDT: НАЧИНАЕМ ПАРСИНГ")
+    print("=" * 50)
     
+    # Шаг 1: Загружаем страницу
     html = fetch_url(URL_USD_EUR)
     if not html:
-        print("❌ EUR→USDT: страница не загружена")
+        print("❌ Шаг 1: страница не загружена")
         return None
+    print("✅ Шаг 1: страница загружена")
     
-    # Ищем паттерн: 1 USD = X,XXXX EUR (или X.XXXX)
+    # Шаг 2: Ищем паттерн
+    print("\n🔍 Шаг 2: ищем паттерн '1 USD = X,XXXX EUR'...")
     pattern = r'1\s*USD\s*=\s*([\d,]+)\s*EUR'
     match = re.search(pattern, html)
     
-    if match:
-        value_str = match.group(1)
-        print(f"✅ Найден курс: '{value_str}'")
-        
-        # Заменяем запятую на точку
-        value_str = value_str.replace(",", ".")
-        try:
-            value = float(value_str)
-            print(f"✅ EUR→USDT: {value} EUR за 1 USDT")
-            return value
-        except ValueError as e:
-            print(f"❌ Ошибка преобразования '{value_str}': {e}")
-            return None
-    else:
-        print("❌ EUR→USDT: курс не найден на странице")
+    if not match:
+        print("❌ Шаг 2: паттерн не найден")
+        return None
+    
+    raw_value = match.group(1)
+    print(f"✅ Шаг 2: найден raw_value = '{raw_value}'")
+    
+    # Шаг 3: Преобразуем запятую в точку
+    print(f"\n🔍 Шаг 3: преобразуем запятую в точку...")
+    value_str = raw_value.replace(",", ".")
+    print(f"   raw_value = '{raw_value}'")
+    print(f"   value_str = '{value_str}'")
+    
+    # Шаг 4: Преобразуем в число
+    print(f"\n🔍 Шаг 4: преобразуем в число...")
+    try:
+        value = float(value_str)
+        print(f"✅ Шаг 4: успешно! value = {value}")
+        print(f"   Тип: {type(value)}")
+        print(f"   repr: {repr(value)}")
+        return value
+    except ValueError as e:
+        print(f"❌ Шаг 4: ошибка преобразования: {e}")
         return None
 
 def get_cny_usdt() -> float | None:
@@ -146,21 +157,37 @@ def load_old_rates():
 
 def main():
     print("=" * 50)
-    print("🔄 Обновление курсов All Rates")
+    print("🔄 Обновление курсов All Rates (с диагностикой)")
     print("=" * 50)
 
+    # Получаем курсы
     rub_usdt = get_rub_usdt()
     eur_usdt = get_eur_usdt()
     cny_usdt = get_cny_usdt()
 
+    # Диагностика: что получили
+    print("\n" + "=" * 50)
+    print("📊 РЕЗУЛЬТАТЫ ПАРСИНГА:")
+    print(f"  RUB→USDT: {rub_usdt} (тип: {type(rub_usdt)})")
+    print(f"  EUR→USDT: {eur_usdt} (тип: {type(eur_usdt)})")
+    print(f"  CNY→USDT: {cny_usdt} (тип: {type(cny_usdt)})")
+    print("=" * 50)
+
     old = load_old_rates()
     
+    # Формируем объект с курсами
     rates = {
         "rub_usdt": rub_usdt if rub_usdt is not None else old.get("rub_usdt"),
         "eur_usdt": eur_usdt if eur_usdt is not None else old.get("eur_usdt"),
         "cny_usdt": cny_usdt if cny_usdt is not None else old.get("cny_usdt"),
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
+
+    # Диагностика: что попадает в JSON
+    print("\n" + "=" * 50)
+    print("📝 ЧТО БУДЕТ СОХРАНЕНО В JSON:")
+    print(json.dumps(rates, ensure_ascii=False, indent=2))
+    print("=" * 50)
 
     if rates["rub_usdt"] is None and rates["eur_usdt"] is None and rates["cny_usdt"] is None:
         print("❌ Все курсы недоступны! Выход.")
