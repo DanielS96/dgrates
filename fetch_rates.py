@@ -27,6 +27,7 @@ def fetch_url(url: str) -> str | None:
     try:
         resp = requests.get(url, headers=HEADERS, timeout=15)
         resp.raise_for_status()
+        print(f"📄 Загружена страница: {url[:60]}... (размер: {len(resp.text)} символов)")
         return resp.text
     except Exception as e:
         print(f"❌ Ошибка запроса к {url}: {e}")
@@ -59,35 +60,82 @@ def get_rub_usdt() -> float | None:
 
 def get_eur_usdt() -> float | None:
     """
-    Парсит курс EUR → USDT с Wise.com по вашему CSS-селектору.
+    Парсит курс EUR → USDT с Wise.com по CSS-селектору.
+    Полностью переписанная логика с подробной отладкой.
     """
-    print("🔍 EUR→USDT: парсим Wise.com...")
+    print("=" * 40)
+    print("🔍 EUR→USDT: НАЧИНАЕМ ПАРСИНГ WISE")
+    print("=" * 40)
+    
+    # 1. Загружаем страницу
     html = fetch_url(URL_USD_EUR)
     if not html:
+        print("❌ EUR→USDT: страница не загружена")
         return None
     
+    # 2. Сохраняем HTML для отладки (первые 500 символов)
+    print(f"📄 Первые 500 символов HTML:")
+    print("-" * 40)
+    print(html[:500])
+    print("-" * 40)
+    
+    # 3. Парсим с BeautifulSoup
     soup = BeautifulSoup(html, "html.parser")
     
-    # Пробуем ваш селектор
+    # 4. Ищем по вашему селектору
+    print(f"🔍 EUR→USDT: ищем по селектору:")
+    print(f"   {CSS_RATE_USD_EUR}")
+    
     elements = soup.select(CSS_RATE_USD_EUR)
     
-    if elements:
-        text = elements[0].get_text(strip=True)
-        print(f"🔍 EUR→USDT текст: '{text}'")
+    # 5. Проверяем результат
+    if not elements:
+        print("❌ EUR→USDT: элемент НЕ НАЙДЕН по селектору")
         
-        # Извлекаем число (может быть "0,8760" или "0.8760")
-        match = re.search(r"([\d,]+)", text)
+        # Пробуем найти похожие элементы для отладки
+        print("🔍 EUR→USDT: ищем все span с классом _midMarketRateAmount...")
+        all_spans = soup.find_all('span', class_=re.compile(r'_midMarketRateAmount'))
+        print(f"   Найдено span с таким классом: {len(all_spans)}")
+        for i, span in enumerate(all_spans[:3]):
+            print(f"   span {i+1}: '{span.get_text(strip=True)}'")
+        
+        # Пробуем найти по атрибуту data-testid
+        print("🔍 EUR→USDT: ищем span с data-testid='mid-market-rate'")
+        testid_spans = soup.select('span[data-testid="mid-market-rate"]')
+        print(f"   Найдено: {len(testid_spans)}")
+        for i, span in enumerate(testid_spans[:3]):
+            print(f"   span {i+1}: '{span.get_text(strip=True)}'")
+        
+        return None
+    
+    # 6. Элемент найден — извлекаем текст
+    text = elements[0].get_text(strip=True)
+    print(f"✅ EUR→USDT: элемент НАЙДЕН!")
+    print(f"🔍 EUR→USDT: текст элемента: '{text}'")
+    print(f"🔍 EUR→USDT: длина текста: {len(text)} символов")
+    print(f"🔍 EUR→USDT: repr текста: {repr(text)}")
+    
+    # 7. Извлекаем число из текста
+    # Пробуем разные паттерны
+    patterns = [
+        r'([\d,]+\.?[\d]*)',  # 0,8760 или 0.8760
+        r'([\d.]+)',          # 0.8760
+        r'([\d,]+)',          # 0,8760
+    ]
+    
+    for i, pattern in enumerate(patterns, 1):
+        match = re.search(pattern, text)
         if match:
             value_str = match.group(1).replace(",", ".")
-            value = float(value_str)
-            print(f"✅ EUR→USDT: {value} EUR за 1 USDT")
-            return value
-        else:
-            print("❌ EUR→USDT: число не найдено в тексте")
-            return None
-    else:
-        print("❌ EUR→USDT: элемент не найден по селектору")
-        return None
+            try:
+                value = float(value_str)
+                print(f"✅ EUR→USDT: паттерн {i} сработал: {value_str} → {value}")
+                return value
+            except ValueError as e:
+                print(f"⚠️ EUR→USDT: не удалось преобразовать '{value_str}': {e}")
+    
+    print("❌ EUR→USDT: не удалось извлечь число из текста")
+    return None
 
 def get_cny_usdt() -> float | None:
     """Парсит курс USD → CNY с Rambler."""
