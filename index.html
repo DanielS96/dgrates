@@ -160,15 +160,15 @@
             </div>
 
             <div class="rate-item">
-                <div class="rate-label">USDT → EUR</div>
-                <div class="rate" id="rate-usd-eur">
+                <div class="rate-label">EUR → USDT</div>
+                <div class="rate" id="rate-eur-usdt">
                     <span class="rate-placeholder">Загрузка...</span>
                 </div>
             </div>
 
             <div class="rate-item">
-                <div class="rate-label">USDT → CNY</div>
-                <div class="rate" id="rate-usdt-cny">
+                <div class="rate-label">CNY → USDT</div>
+                <div class="rate" id="rate-cny-usdt">
                     <span class="rate-placeholder">Загрузка...</span>
                 </div>
             </div>
@@ -189,8 +189,8 @@
 
                 // Все курсы показываются как "X валюты за 1 USDT"
                 displayRate('rate-rub-usdt', data.rub_usdt, 'RUB за 1 USDT');
-                displayRate('rate-usd-eur', data.usd_eur, 'EUR за 1 USDT');
-                displayRate('rate-usdt-cny', data.usd_cny, 'CNY за 1 USDT');
+                displayRate('rate-eur-usdt', data.eur_usdt, 'EUR за 1 USDT');
+                displayRate('rate-cny-usdt', data.cny_usdt, 'CNY за 1 USDT');
 
                 if (data.updated_at) {
                     const d = new Date(data.updated_at);
