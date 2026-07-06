@@ -13,14 +13,17 @@ URL_RUB_USDT = "https://www.bestchange.ru/cash-ruble-to-tether-trc20-in-msk.html
 URL_USD_EUR = "https://www.xe.com/currencycharts/?from=USD&to=EUR"
 URL_USD_CNY = "https://finance.rambler.ru/calculators/converter/1-USD-CNY/"
 
+# CSS-селекторы для каждого курса
 CSS_RATE_RUB_USDT = "#undertable > div.m-hint > span:nth-child(2) > span:nth-child(5) > span"
+CSS_RATE_USD_EUR = "#__next > main > div:nth-child(5) > div.relative.bg-gradient-to-l.from-blue-850.to-blue-700.pt-8 > div.m-auto.grid.max-w-screen-xl.gap-6.px-4.md\\:gap-12.md\\:px-10 > div > div:nth-child(2) > div > div:nth-child(4) > div:nth-child(2) > div.flex.flex-wrap.justify-between > div.flex.flex-wrap.items-start > div > p"
+CSS_RATE_USD_CNY = "#app > div.dTSkA6xB.commercial-branding > div > div.yP4MAOpL > div.BgJ8We0r.so0OkpgH > div.yw7YVg6D > div.N_cub_8e > div:nth-child(1) > div:nth-child(3) > span.x9LZBMwk"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 }
 
 # ------------------------------
-# Вспомогательные функции
+# Вспомогательная функция
 # ------------------------------
 def fetch_url(url: str) -> str | None:
     try:
@@ -32,7 +35,7 @@ def fetch_url(url: str) -> str | None:
         return None
 
 # ------------------------------
-# Парсеры для каждого курса
+# Парсеры для каждого курса (с использованием селекторов)
 # ------------------------------
 def get_rub_usdt() -> float | None:
     """Парсит курс RUB → USDT с BestChange."""
@@ -47,6 +50,8 @@ def get_rub_usdt() -> float | None:
         return None
     
     text = elements[0].get_text(strip=True)
+    print(f"🔍 RUB→USDT текст: {text}")
+    
     match = re.search(r"([\d.,]+)", text)
     if not match:
         return None
@@ -58,31 +63,65 @@ def get_rub_usdt() -> float | None:
         return None
 
 def get_usd_eur() -> float | None:
-    """Парсит курс USD → EUR с XE.com."""
+    """Парсит курс USD → EUR с XE.com по CSS-селектору."""
     html = fetch_url(URL_USD_EUR)
     if not html:
         return None
     
-    # Ищем паттерн: 1 USD = X.XXXXXX EUR
-    match = re.search(r'1\s*USD\s*=\s*([\d.]+)\s*EUR', html)
+    soup = BeautifulSoup(html, "html.parser")
+    elements = soup.select(CSS_RATE_USD_EUR)
+    
+    if not elements:
+        print("❌ USD→EUR: элемент не найден по селектору")
+        # Пробуем запасной вариант через регулярное выражение
+        match = re.search(r'1\s*USD\s*=\s*([\d.]+)\s*EUR', html)
+        if match:
+            print("⚠️ USD→EUR: найден через regex (запасной вариант)")
+            return float(match.group(1))
+        return None
+    
+    text = elements[0].get_text(strip=True)
+    print(f"🔍 USD→EUR текст: {text}")
+    
+    # Извлекаем число из текста (может быть "0.876098 EUR" или просто "0.876098")
+    match = re.search(r"([\d.]+)", text)
     if match:
         return float(match.group(1))
     else:
-        print("❌ USD→EUR: курс не найден")
+        print("❌ USD→EUR: число не найдено в тексте элемента")
         return None
 
 def get_usd_cny() -> float | None:
-    """Парсит курс USD → CNY с Rambler."""
+    """Парсит курс USD → CNY с Rambler по CSS-селектору."""
     html = fetch_url(URL_USD_CNY)
     if not html:
         return None
     
-    # Ищем паттерн: 1 USD = X.XXXX CNY
-    match = re.search(r'1\s*USD\s*=\s*([\d.]+)\s*CNY', html)
+    soup = BeautifulSoup(html, "html.parser")
+    elements = soup.select(CSS_RATE_USD_CNY)
+    
+    if not elements:
+        print("❌ USD→CNY: элемент не найден по селектору")
+        # Пробуем запасные варианты через регулярные выражения
+        match = re.search(r'1\s*USD\s*=\s*([\d.]+)\s*CNY', html)
+        if match:
+            print("⚠️ USD→CNY: найден через regex (запасной вариант)")
+            return float(match.group(1))
+        match = re.search(r'USD1\s*CNY([\d.]+)', html)
+        if match:
+            print("⚠️ USD→CNY: найден через альтернативный regex")
+            return float(match.group(1))
+        return None
+    
+    text = elements[0].get_text(strip=True)
+    print(f"🔍 USD→CNY текст: {text}")
+    
+    # Извлекаем число из текста
+    match = re.search(r"([\d.]+)", text)
     if match:
         return float(match.group(1))
     else:
-        print("❌ USD→CNY: курс не найден")
+        print("❌ USD→CNY: число не найдено в тексте элемента")
         return None
 
 # ------------------------------
@@ -102,10 +141,10 @@ def load_old_rates():
 # ------------------------------
 def main():
     print("=" * 50)
-    print("🔄 Начинаем обновление курсов")
+    print("🔄 Начинаем обновление курсов (с CSS-селекторами)")
     print("=" * 50)
 
-    # Получаем текущие курсы (с обработкой ошибок)
+    # Получаем текущие курсы
     rub_usdt = get_rub_usdt()
     usd_eur = get_usd_eur()
     usd_cny = get_usd_cny()
