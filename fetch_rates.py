@@ -97,12 +97,18 @@ def get_eur_usdt() -> float | None:
         return None
 
 def get_cny_usdt() -> float | None:
-    """Парсит курс USD → CNY с Rambler и вычитает 0.2."""
+    """
+    Парсит курс USD → CNY с Rambler и уменьшает на 1.7%.
+    """
     html = fetch_url(URL_USD_CNY)
     if not html:
         return None
     
     soup = BeautifulSoup(html, "html.parser")
+    
+    # Коэффициент для уменьшения на 1.7%
+    # 100% - 1.7% = 98.3% = 0.983
+    DISCOUNT_FACTOR = 0.983
     
     # 1. Пробуем CSS-селектор
     print("🔍 CNY→USDT: ищем по CSS-селектору...")
@@ -114,10 +120,10 @@ def get_cny_usdt() -> float | None:
         
         match = re.search(r"([\d.]+)", text)
         if match:
-            value = float(match.group(1))
-            # Вычитаем 0.2 из курса юаня
-            value = value - 0.2
-            print(f"✅ CNY→USDT (CSS) результат: {value} CNY за 1 USDT (исходный: {match.group(1)} - 0.2)")
+            original_value = float(match.group(1))
+            # Уменьшаем на 1.7%
+            value = original_value * DISCOUNT_FACTOR
+            print(f"✅ CNY→USDT (CSS) результат: {value:.6f} CNY за 1 USDT (исходный: {match.group(1)} × 0.983)")
             return value
     
     # 2. Запасные варианты через регулярки
@@ -127,20 +133,20 @@ def get_cny_usdt() -> float | None:
     pattern = r'1\s*USD\s*=\s*([\d.]+)\s*CNY'
     match = re.search(pattern, html)
     if match:
-        value = float(match.group(1))
-        # Вычитаем 0.2 из курса юаня
-        value = value - 0.2
-        print(f"✅ CNY→USDT (регулярка 1) результат: {value} CNY за 1 USDT (исходный: {match.group(1)} - 0.2)")
+        original_value = float(match.group(1))
+        # Уменьшаем на 1.7%
+        value = original_value * DISCOUNT_FACTOR
+        print(f"✅ CNY→USDT (регулярка 1) результат: {value:.6f} CNY за 1 USDT (исходный: {match.group(1)} × 0.983)")
         return value
     
     # Паттерн: "USD1 CNY6.786"
     pattern2 = r'USD1\s*CNY([\d.]+)'
     match = re.search(pattern2, html)
     if match:
-        value = float(match.group(1))
-        # Вычитаем 0.2 из курса юаня
-        value = value - 0.2
-        print(f"✅ CNY→USDT (регулярка 2) результат: {value} CNY за 1 USDT (исходный: {match.group(1)} - 0.2)")
+        original_value = float(match.group(1))
+        # Уменьшаем на 1.7%
+        value = original_value * DISCOUNT_FACTOR
+        print(f"✅ CNY→USDT (регулярка 2) результат: {value:.6f} CNY за 1 USDT (исходный: {match.group(1)} × 0.983)")
         return value
     
     print("❌ CNY→USDT: курс не найден")
