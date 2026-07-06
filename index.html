@@ -1,25 +1,15 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover" />
-    <title>All Rates</title>
+    <title>Мультивалютный обменник</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            max-width: 100%;
-            overflow-x: hidden;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { max-width: 100%; overflow-x: hidden; }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
@@ -33,9 +23,7 @@
             max-width: 100vw;
             overflow-x: hidden;
         }
-
-        body::before,
-        body::after {
+        body::before, body::after {
             content: '';
             position: absolute;
             border-radius: 50%;
@@ -43,7 +31,6 @@
             opacity: 0.3;
             z-index: 0;
         }
-
         body::before {
             width: 400px;
             height: 400px;
@@ -52,7 +39,6 @@
             left: -100px;
             animation: float1 8s ease-in-out infinite;
         }
-
         body::after {
             width: 300px;
             height: 300px;
@@ -61,39 +47,10 @@
             right: -50px;
             animation: float2 10s ease-in-out infinite;
         }
-
-        @keyframes float1 {
-            0%,
-            100% {
-                transform: translate(0, 0);
-            }
-            50% {
-                transform: translate(50px, 50px);
-            }
-        }
-
-        @keyframes float2 {
-            0%,
-            100% {
-                transform: translate(0, 0);
-            }
-            50% {
-                transform: translate(-40px, -60px);
-            }
-        }
-
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 520px;
-            width: 100%;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
+        @keyframes float1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(50px,50px); } }
+        @keyframes float2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-40px,-60px); } }
+        .container { position: relative; z-index: 1; max-width: 520px; width: 100%; }
+        .header { text-align: center; margin-bottom: 32px; }
         h1 {
             font-size: 2rem;
             font-weight: 800;
@@ -102,26 +59,16 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 8px;
-            letter-spacing: -0.03em;
-            line-height: 1.1;
         }
-
-        .subtitle {
-            color: #99f6e4;
-            font-size: 0.95rem;
-            font-weight: 500;
-            opacity: 0.9;
-        }
-
+        .subtitle { color: #99f6e4; font-size: 0.95rem; font-weight: 500; opacity: 0.9; }
         .card {
             background: rgba(15, 45, 45, 0.6);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(110, 231, 183, 0.2);
             border-radius: 24px;
             padding: 28px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(110, 231, 183, 0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(110,231,183,0.1);
         }
-
         .rate-item {
             background: rgba(10, 30, 30, 0.6);
             border: 1px solid rgba(110, 231, 183, 0.15);
@@ -132,11 +79,7 @@
             overflow: hidden;
             margin-bottom: 16px;
         }
-
-        .rate-item:last-child {
-            margin-bottom: 0;
-        }
-
+        .rate-item:last-child { margin-bottom: 0; }
         .rate-item::before {
             content: '';
             position: absolute;
@@ -146,7 +89,6 @@
             height: 1px;
             background: linear-gradient(90deg, transparent, rgba(110, 231, 183, 0.6), transparent);
         }
-
         .rate-label {
             color: #99f6e4;
             font-size: 0.85rem;
@@ -155,7 +97,6 @@
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }
-
         .rate-value {
             font-size: 2rem;
             font-weight: 800;
@@ -164,20 +105,17 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-
         .rate-unit {
             font-size: 1rem;
             color: #6ee7b7;
             font-weight: 500;
             margin-left: 8px;
         }
-
         .rate-placeholder {
             font-size: 1.1rem;
             color: #5e9e8e;
             font-weight: 500;
         }
-
         .updated {
             color: #5e9e8e;
             font-size: 0.75rem;
@@ -188,7 +126,6 @@
             justify-content: center;
             gap: 6px;
         }
-
         .updated::before {
             content: '';
             width: 6px;
@@ -197,45 +134,24 @@
             background: #10b981;
             animation: pulse 2s ease-in-out infinite;
         }
-
-        @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.4;
-            }
-        }
-
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
         @media (max-width: 480px) {
-            h1 {
-                font-size: 1.5rem;
-            }
-            .rate-value {
-                font-size: 1.5rem;
-            }
-            .rate-unit {
-                font-size: 0.85rem;
-            }
-            .card {
-                padding: 22px;
-            }
-            .rate-item {
-                padding: 16px 20px;
-            }
+            h1 { font-size: 1.5rem; }
+            .rate-value { font-size: 1.5rem; }
+            .rate-unit { font-size: 0.85rem; }
+            .card { padding: 22px; }
+            .rate-item { padding: 16px 20px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>All Rates</h1>
-            <div class="subtitle"></div>
+            <h1>Мультивалютный обменник</h1>
+            <div class="subtitle">Актуальные курсы</div>
         </div>
 
         <div class="card">
-            <!-- RUB → USDT -->
             <div class="rate-item">
                 <div class="rate-label">RUB → USDT</div>
                 <div class="rate" id="rate-rub-usdt">
@@ -243,15 +159,13 @@
                 </div>
             </div>
 
-            <!-- USD → EUR -->
             <div class="rate-item">
-                <div class="rate-label">USD → EUR</div>
+                <div class="rate-label">USDT → EUR</div>
                 <div class="rate" id="rate-usd-eur">
                     <span class="rate-placeholder">Загрузка...</span>
                 </div>
             </div>
 
-            <!-- USDT → CNY -->
             <div class="rate-item">
                 <div class="rate-label">USDT → CNY</div>
                 <div class="rate" id="rate-usdt-cny">
@@ -264,7 +178,6 @@
     </div>
 
     <script>
-        // Функция загрузки данных
         async function loadRates() {
             try {
                 const response = await fetch('rates_all.json?t=' + Date.now(), {
@@ -274,12 +187,11 @@
                 if (!response.ok) throw new Error('Не удалось загрузить курсы');
                 const data = await response.json();
 
-                // Отображаем каждый курс
+                // Все курсы показываются как "X валюты за 1 USDT"
                 displayRate('rate-rub-usdt', data.rub_usdt, 'RUB за 1 USDT');
-                displayRate('rate-usd-eur', data.usd_eur, 'USD за 1 EUR');
-                displayRate('rate-usdt-cny', data.usd_cny, 'USD за 1 CNY');
+                displayRate('rate-usd-eur', data.usd_eur, 'EUR за 1 USDT');
+                displayRate('rate-usdt-cny', data.usd_cny, 'CNY за 1 USDT');
 
-                // Время обновления
                 if (data.updated_at) {
                     const d = new Date(data.updated_at);
                     document.getElementById('updated').textContent = 'Обновлено: ' + d.toLocaleString('ru-RU');
@@ -289,7 +201,6 @@
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
                 document.getElementById('updated').textContent = '⚠️ Ошибка загрузки данных';
-                // Показываем заглушки
                 document.querySelectorAll('.rate').forEach(el => {
                     el.innerHTML = '<span class="rate-placeholder">Недоступно</span>';
                 });
@@ -298,17 +209,14 @@
 
         function displayRate(elementId, value, unit) {
             const container = document.getElementById(elementId);
-            if (value !== null && value !== undefined && !isNaN(value)) {
+            if (value !== null && value !== undefined && !isNaN(value) && value > 0) {
                 container.innerHTML = `<span class="rate-value">${value.toFixed(6)}</span><span class="rate-unit">${unit}</span>`;
             } else {
                 container.innerHTML = `<span class="rate-placeholder">Нет данных</span>`;
             }
         }
 
-        // Первая загрузка
         loadRates();
-
-        // Автообновление каждые 30 секунд
         setInterval(loadRates, 30000);
     </script>
 </body>
