@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Техническое обслуживание</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1228 100%);
+            color: #e2e8f0;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before,
+        body::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.2;
+            z-index: 0;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        body::before {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            top: -100px;
+            left: -100px;
+        }
+
+        body::after {
+            width: 350px;
+            height: 350px;
+            background: linear-gradient(135deg, #06b6d4, #3b82f6);
+            bottom: -80px;
+            right: -80px;
+            animation-delay: 3s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, 30px) scale(1.1); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .gears {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            height: 120px;
+        }
+
+        .gear {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.1), transparent 60%);
+            border-radius: 50%;
+            position: relative;
+            animation: spin 4s linear infinite;
+            flex-shrink: 0;
+        }
+
+        .gear::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, #1a1f3a 30%, transparent 70%);
+            border-radius: 50%;
+            box-shadow: inset 0 0 10px rgba(99, 102, 241, 0.3);
+        }
+
+        .gear::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background: 
+                radial-gradient(circle at 50% 50%, transparent 55%, #6366f1 55.5%, #6366f1 58%, transparent 58.5%),
+                radial-gradient(circle at 50% 50%, transparent 65%, #6366f1 65.5%, #6366f1 68%, transparent 68.5%),
+                radial-gradient(circle at 50% 50%, transparent 75%, #6366f1 75.5%, #6366f1 78%, transparent 78.5%),
+                radial-gradient(circle at 50% 50%, transparent 85%, #6366f1 85.5%, #6366f1 88%, transparent 88.5%),
+                radial-gradient(circle at 50% 50%, transparent 40%, #6366f1 40.5%, #6366f1 43%, transparent 43.5%),
+                radial-gradient(circle at 50% 50%, transparent 30%, #6366f1 30.5%, #6366f1 33%, transparent 33.5%);
+            border-radius: 50%;
+            opacity: 0.8;
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .gear-small {
+            width: 60px;
+            height: 60px;
+            animation-duration: 3s;
+            animation-direction: reverse;
+        }
+
+        .gear-small::after {
+            width: 50px;
+            height: 50px;
+            background: 
+                radial-gradient(circle at 50% 50%, transparent 50%, #8b5cf6 50.5%, #8b5cf6 53%, transparent 53.5%),
+                radial-gradient(circle at 50% 50%, transparent 62%, #8b5cf6 62.5%, #8b5cf6 65%, transparent 65.5%),
+                radial-gradient(circle at 50% 50%, transparent 74%, #8b5cf6 74.5%, #8b5cf6 77%, transparent 77.5%),
+                radial-gradient(circle at 50% 50%, transparent 86%, #8b5cf6 86.5%, #8b5cf6 89%, transparent 89.5%),
+                radial-gradient(circle at 50% 50%, transparent 35%, #8b5cf6 35.5%, #8b5cf6 38%, transparent 38.5%);
+        }
+
+        .gear-small::before {
+            width: 22px;
+            height: 22px;
+        }
+
+        .gear-tiny {
+            width: 45px;
+            height: 45px;
+            animation-duration: 2.5s;
+        }
+
+        .gear-tiny::after {
+            width: 38px;
+            height: 38px;
+            background: 
+                radial-gradient(circle at 50% 50%, transparent 45%, #06b6d4 45.5%, #06b6d4 48%, transparent 48.5%),
+                radial-gradient(circle at 50% 50%, transparent 58%, #06b6d4 58.5%, #06b6d4 61%, transparent 61.5%),
+                radial-gradient(circle at 50% 50%, transparent 70%, #06b6d4 70.5%, #06b6d4 73%, transparent 73.5%),
+                radial-gradient(circle at 50% 50%, transparent 82%, #06b6d4 82.5%, #06b6d4 85%, transparent 85.5%);
+        }
+
+        .gear-tiny::before {
+            width: 16px;
+            height: 16px;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            font-weight: 500;
+            line-height: 1.6;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 0.95rem;
+            }
+            
+            .gears {
+                gap: 12px;
+                height: 90px;
+            }
+            
+            .gear {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .gear-small {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .gear-tiny {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .gear::after {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .gear-small::after {
+                width: 38px;
+                height: 38px;
+            }
+            
+            .gear-tiny::after {
+                width: 28px;
+                height: 28px;
+            }
+            
+            .gear::before {
+                width: 22px;
+                height: 22px;
+            }
+            
+            .gear-small::before {
+                width: 16px;
+                height: 16px;
+            }
+            
+            .gear-tiny::before {
+                width: 12px;
+                height: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="gears">
+            <div class="gear gear-small"></div>
+            <div class="gear"></div>
+            <div class="gear gear-tiny"></div>
+        </div>
+
+        <h1 class="title">Кажется, технические неполадки</h1>
+        <p class="subtitle">Уже чиним</p>
+    </div>
+</body>
+</html>
