@@ -15,7 +15,6 @@ URL_USD_CNY = "https://finance.rambler.ru/calculators/converter/1-USD-CNY/"
 
 # CSS-селекторы
 CSS_RATE_RUB_USDT = "#undertable > div.m-hint > span:nth-child(2) > span:nth-child(5) > span"
-CSS_RATE_USD_EUR = "#__next > main > div:nth-child(5) > div.relative.bg-gradient-to-l.from-blue-850.to-blue-700.pt-8 > div.m-auto.grid.max-w-screen-xl.gap-6.px-4.md\\:gap-12.md\\:px-10 > div > div:nth-child(2) > div > div:nth-child(4) > div:nth-child(2) > div.flex.flex-wrap.justify-between > div.flex.flex-wrap.items-start > div > p"
 CSS_RATE_USD_CNY = "#app > div.dTSkA6xB.commercial-branding > div > div.yP4MAOpL > div.BgJ8We0r.so0OkpgH > div.yw7YVg6D > div.N_cub_8e > div:nth-child(1) > div:nth-child(3) > span.x9LZBMwk"
 
 HEADERS = {
@@ -44,8 +43,6 @@ def get_rub_usdt() -> float | None:
         return None
     
     text = elements[0].get_text(strip=True)
-    print(f"🔍 RUB→USDT текст: {text}")
-    
     match = re.search(r"([\d.,]+)", text)
     if not match:
         return None
@@ -58,46 +55,26 @@ def get_rub_usdt() -> float | None:
 
 def get_eur_usdt() -> float | None:
     """
-    Парсит курс USD → EUR с XE.com.
-    Возвращает сколько EUR дают за 1 USD (что равно EUR за 1 USDT)
+    Парсит курс EUR → USDT с XE.com.
+    Ищет на странице текст "1 USD = X.XXXXXX EUR".
     """
     html = fetch_url(URL_USD_EUR)
     if not html:
         return None
     
-    soup = BeautifulSoup(html, "html.parser")
-    
-    # 1. Пробуем CSS-селектор
-    print("🔍 EUR→USDT: ищем по CSS-селектору...")
-    elements = soup.select(CSS_RATE_USD_EUR)
-    
-    if elements:
-        text = elements[0].get_text(strip=True)
-        print(f"🔍 EUR→USDT (CSS) текст: '{text}'")
-        
-        match = re.search(r"([\d.]+)", text)
-        if match:
-            value = float(match.group(1))
-            print(f"✅ EUR→USDT (CSS) результат: {value} EUR за 1 USDT")
-            return value
-    
-    # 2. Запасной вариант через регулярку
-    print("🔍 EUR→USDT: CSS не сработал, пробуем регулярку...")
+    # Ищем паттерн: 1 USD = X.XXXXXX EUR
     pattern = r'1\s*USD\s*=\s*([\d.]+)\s*EUR'
     match = re.search(pattern, html)
     if match:
         value = float(match.group(1))
-        print(f"✅ EUR→USDT (регулярка) результат: {value} EUR за 1 USDT")
+        print(f"✅ EUR→USDT: {value} EUR за 1 USDT")
         return value
-    
-    print("❌ EUR→USDT: курс не найден")
-    return None
+    else:
+        print("❌ EUR→USDT: курс не найден на странице XE")
+        return None
 
 def get_cny_usdt() -> float | None:
-    """
-    Парсит курс USD → CNY с Rambler.
-    Возвращает сколько CNY дают за 1 USD (что равно CNY за 1 USDT)
-    """
+    """Парсит курс USD → CNY с Rambler."""
     html = fetch_url(URL_USD_CNY)
     if not html:
         return None
@@ -105,28 +82,22 @@ def get_cny_usdt() -> float | None:
     soup = BeautifulSoup(html, "html.parser")
     
     # 1. Пробуем CSS-селектор
-    print("🔍 CNY→USDT: ищем по CSS-селектору...")
     elements = soup.select(CSS_RATE_USD_CNY)
-    
     if elements:
         text = elements[0].get_text(strip=True)
-        print(f"🔍 CNY→USDT (CSS) текст: '{text}'")
-        
         match = re.search(r"([\d.]+)", text)
         if match:
             value = float(match.group(1))
-            print(f"✅ CNY→USDT (CSS) результат: {value} CNY за 1 USDT")
+            print(f"✅ CNY→USDT (CSS): {value} CNY за 1 USDT")
             return value
     
     # 2. Запасные варианты через регулярки
-    print("🔍 CNY→USDT: CSS не сработал, пробуем регулярки...")
-    
     # Паттерн: "1 USD = X.XXXX CNY"
     pattern = r'1\s*USD\s*=\s*([\d.]+)\s*CNY'
     match = re.search(pattern, html)
     if match:
         value = float(match.group(1))
-        print(f"✅ CNY→USDT (регулярка 1) результат: {value} CNY за 1 USDT")
+        print(f"✅ CNY→USDT (регулярка): {value} CNY за 1 USDT")
         return value
     
     # Паттерн: "USD1 CNY6.786"
@@ -134,7 +105,7 @@ def get_cny_usdt() -> float | None:
     match = re.search(pattern2, html)
     if match:
         value = float(match.group(1))
-        print(f"✅ CNY→USDT (регулярка 2) результат: {value} CNY за 1 USDT")
+        print(f"✅ CNY→USDT (регулярка 2): {value} CNY за 1 USDT")
         return value
     
     print("❌ CNY→USDT: курс не найден")
@@ -151,7 +122,7 @@ def load_old_rates():
 
 def main():
     print("=" * 50)
-    print("🔄 Обновление курсов (все валюты за 1 USDT)")
+    print("🔄 Обновление курсов All Rates")
     print("=" * 50)
 
     rub_usdt = get_rub_usdt()
@@ -160,7 +131,6 @@ def main():
 
     old = load_old_rates()
     
-    # Сохраняем с правильными названиями ключей
     rates = {
         "rub_usdt": rub_usdt if rub_usdt is not None else old.get("rub_usdt"),
         "eur_usdt": eur_usdt if eur_usdt is not None else old.get("eur_usdt"),
@@ -176,9 +146,9 @@ def main():
         json.dump(rates, f, ensure_ascii=False, indent=2)
 
     print("✅ Сохранены курсы (за 1 USDT):")
-    print(f"  RUB→USDT: {rates['rub_usdt']} RUB за 1 USDT")
-    print(f"  EUR→USDT: {rates['eur_usdt']} EUR за 1 USDT")
-    print(f"  CNY→USDT: {rates['cny_usdt']} CNY за 1 USDT")
+    print(f"  RUB→USDT: {rates['rub_usdt']} RUB")
+    print(f"  EUR→USDT: {rates['eur_usdt']} EUR")
+    print(f"  CNY→USDT: {rates['cny_usdt']} CNY")
     print(f"  Обновлено: {rates['updated_at']}")
     print("=" * 50)
 
