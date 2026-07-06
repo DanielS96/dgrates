@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover" />
-    <title>Мультивалютный обменник</title>
+    <title>All Rates</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -52,15 +52,14 @@
         .container { position: relative; z-index: 1; max-width: 520px; width: 100%; }
         .header { text-align: center; margin-bottom: 32px; }
         h1 {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 800;
             background: linear-gradient(135deg, #fff 0%, #6ee7b7 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
-        .subtitle { color: #99f6e4; font-size: 0.95rem; font-weight: 500; opacity: 0.9; }
         .card {
             background: rgba(15, 45, 45, 0.6);
             backdrop-filter: blur(20px);
@@ -136,7 +135,7 @@
         }
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
         @media (max-width: 480px) {
-            h1 { font-size: 1.5rem; }
+            h1 { font-size: 2rem; }
             .rate-value { font-size: 1.5rem; }
             .rate-unit { font-size: 0.85rem; }
             .card { padding: 22px; }
@@ -147,8 +146,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Мультивалютный обменник</h1>
-            <div class="subtitle">Актуальные курсы</div>
+            <h1>All Rates</h1>
         </div>
 
         <div class="card">
@@ -187,7 +185,6 @@
                 if (!response.ok) throw new Error('Не удалось загрузить курсы');
                 const data = await response.json();
 
-                // Все курсы показываются как "X валюты за 1 USDT"
                 displayRate('rate-rub-usdt', data.rub_usdt, 'RUB за 1 USDT');
                 displayRate('rate-eur-usdt', data.eur_usdt, 'EUR за 1 USDT');
                 displayRate('rate-cny-usdt', data.cny_usdt, 'CNY за 1 USDT');
