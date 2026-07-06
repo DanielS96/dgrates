@@ -59,13 +59,12 @@ def get_rub_usdt() -> float | None:
 def get_eur_usdt() -> float | None:
     """
     Парсит курс EUR → USDT с Wise.com.
-    Использует регулярное выражение для поиска "1 USD = X,XXXX EUR"
-    Полная диагностика каждого шага.
+    Полная диагностика с сохранением результатов.
     """
     print("=" * 50)
     print("🔍 EUR→USDT: НАЧИНАЕМ ПАРСИНГ WISE")
     print("=" * 50)
-    
+
     # Шаг 1: Загружаем страницу
     print("\n🔍 Шаг 1: загружаем страницу...")
     html = fetch_url(URL_USD_EUR)
@@ -99,6 +98,19 @@ def get_eur_usdt() -> float | None:
         print(f"✅ Шаг 4: успешно! value = {value}")
         print(f"   Тип: {type(value)}")
         print(f"   repr: {repr(value)}")
+        
+        # СОХРАНЯЕМ РЕЗУЛЬТАТ В ОТДЕЛЬНЫЙ ФАЙЛ ДЛЯ ДИАГНОСТИКИ
+        debug_data = {
+            "raw_value": raw_value,
+            "value_str": value_str,
+            "value": value,
+            "value_type": str(type(value)),
+            "value_repr": repr(value)
+        }
+        with open("debug_eur.json", "w", encoding="utf-8") as f:
+            json.dump(debug_data, f, ensure_ascii=False, indent=2)
+        print("📄 debug_eur.json сохранён")
+        
         return value
     except ValueError as e:
         print(f"❌ Шаг 4: ошибка преобразования: {e}")
@@ -167,12 +179,12 @@ def main():
     eur_usdt = get_eur_usdt()
     cny_usdt = get_cny_usdt()
 
-    # Диагностика: что получили
+    # ДИАГНОСТИКА: точные значения
     print("\n" + "=" * 50)
-    print("📊 РЕЗУЛЬТАТЫ ПАРСИНГА:")
-    print(f"  RUB→USDT: {rub_usdt} (тип: {type(rub_usdt)})")
-    print(f"  EUR→USDT: {eur_usdt} (тип: {type(eur_usdt)})")
-    print(f"  CNY→USDT: {cny_usdt} (тип: {type(cny_usdt)})")
+    print("📊 ТОЧНЫЕ ЗНАЧЕНИЯ ИЗ ПАРСИНГА:")
+    print(f"  RUB→USDT: {repr(rub_usdt)} (тип: {type(rub_usdt)})")
+    print(f"  EUR→USDT: {repr(eur_usdt)} (тип: {type(eur_usdt)})")
+    print(f"  CNY→USDT: {repr(cny_usdt)} (тип: {type(cny_usdt)})")
     print("=" * 50)
 
     old = load_old_rates()
@@ -185,10 +197,20 @@ def main():
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
 
-    # Диагностика: что попадает в JSON
+    # ДИАГНОСТИКА: что попадает в JSON (пошагово)
     print("\n" + "=" * 50)
-    print("📝 ЧТО БУДЕТ СОХРАНЕНО В JSON:")
-    print(json.dumps(rates, ensure_ascii=False, indent=2))
+    print("📝 ПОШАГОВАЯ ПРОВЕРКА JSON:")
+    print(f"  rates['eur_usdt'] = {repr(rates['eur_usdt'])}")
+    print(f"  rates['eur_usdt'] тип: {type(rates['eur_usdt'])}")
+    
+    # Пробуем преобразовать в JSON
+    try:
+        json_str = json.dumps(rates, ensure_ascii=False, indent=2)
+        print("✅ JSON успешно создан:")
+        print(json_str)
+    except Exception as e:
+        print(f"❌ Ошибка при создании JSON: {e}")
+    
     print("=" * 50)
 
     if rates["rub_usdt"] is None and rates["eur_usdt"] is None and rates["cny_usdt"] is None:
