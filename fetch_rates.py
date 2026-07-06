@@ -10,11 +10,12 @@ from bs4 import BeautifulSoup
 # Конфигурация
 # ------------------------------
 URL_RUB_USDT = "https://www.bestchange.ru/cash-ruble-to-tether-trc20-in-msk.html"
-URL_USD_EUR = "https://www.xe.com/currencycharts/?from=USD&to=EUR"
+URL_USD_EUR = "https://wise.com/ru/currency-converter/usd-to-eur-rate"
 URL_USD_CNY = "https://finance.rambler.ru/calculators/converter/1-USD-CNY/"
 
 # CSS-селекторы
 CSS_RATE_RUB_USDT = "#undertable > div.m-hint > span:nth-child(2) > span:nth-child(5) > span"
+CSS_RATE_USD_EUR = "#calculator > div > div > div.preset--light > div > div > div > div.m-b-3 > div > div > div._midMarketRateAmount_lbutx_138 > span:nth-child(2)"
 CSS_RATE_USD_CNY = "#app > div.dTSkA6xB.commercial-branding > div > div.yP4MAOpL > div.BgJ8We0r.so0OkpgH > div.yw7YVg6D > div.N_cub_8e > div:nth-child(1) > div:nth-child(3) > span.x9LZBMwk"
 
 HEADERS = {
@@ -43,6 +44,8 @@ def get_rub_usdt() -> float | None:
         return None
     
     text = elements[0].get_text(strip=True)
+    print(f"🔍 RUB→USDT текст: {text}")
+    
     match = re.search(r"([\d.,]+)", text)
     if not match:
         return None
@@ -55,22 +58,39 @@ def get_rub_usdt() -> float | None:
 
 def get_eur_usdt() -> float | None:
     """
-    Парсит курс EUR → USDT с XE.com.
-    Ищет на странице текст "1 USD = X.XXXXXX EUR".
+    Парсит курс EUR → USDT с Wise.com по CSS-селектору.
     """
     html = fetch_url(URL_USD_EUR)
     if not html:
         return None
     
-    # Ищем паттерн: 1 USD = X.XXXXXX EUR
-    pattern = r'1\s*USD\s*=\s*([\d.]+)\s*EUR'
-    match = re.search(pattern, html)
+    soup = BeautifulSoup(html, "html.parser")
+    elements = soup.select(CSS_RATE_USD_EUR)
+    
+    if not elements:
+        print("❌ EUR→USDT: элемент не найден по селектору")
+        # Пробуем запасной вариант через регулярку
+        pattern = r'1\s*USD\s*=\s*([\d,]+)\s*EUR'
+        match = re.search(pattern, html)
+        if match:
+            value_str = match.group(1).replace(",", ".")
+            value = float(value_str)
+            print(f"⚠️ EUR→USDT: найден через regex (запасной вариант): {value}")
+            return value
+        return None
+    
+    text = elements[0].get_text(strip=True)
+    print(f"🔍 EUR→USDT (CSS) текст: '{text}'")
+    
+    # Извлекаем число из текста (может быть "0,8760" или "0.8760")
+    match = re.search(r"([\d,]+)", text)
     if match:
-        value = float(match.group(1))
+        value_str = match.group(1).replace(",", ".")
+        value = float(value_str)
         print(f"✅ EUR→USDT: {value} EUR за 1 USDT")
         return value
     else:
-        print("❌ EUR→USDT: курс не найден на странице XE")
+        print("❌ EUR→USDT: число не найдено в тексте элемента")
         return None
 
 def get_cny_usdt() -> float | None:
@@ -82,22 +102,28 @@ def get_cny_usdt() -> float | None:
     soup = BeautifulSoup(html, "html.parser")
     
     # 1. Пробуем CSS-селектор
+    print("🔍 CNY→USDT: ищем по CSS-селектору...")
     elements = soup.select(CSS_RATE_USD_CNY)
+    
     if elements:
         text = elements[0].get_text(strip=True)
+        print(f"🔍 CNY→USDT (CSS) текст: '{text}'")
+        
         match = re.search(r"([\d.]+)", text)
         if match:
             value = float(match.group(1))
-            print(f"✅ CNY→USDT (CSS): {value} CNY за 1 USDT")
+            print(f"✅ CNY→USDT (CSS) результат: {value} CNY за 1 USDT")
             return value
     
     # 2. Запасные варианты через регулярки
+    print("🔍 CNY→USDT: CSS не сработал, пробуем регулярки...")
+    
     # Паттерн: "1 USD = X.XXXX CNY"
     pattern = r'1\s*USD\s*=\s*([\d.]+)\s*CNY'
     match = re.search(pattern, html)
     if match:
         value = float(match.group(1))
-        print(f"✅ CNY→USDT (регулярка): {value} CNY за 1 USDT")
+        print(f"✅ CNY→USDT (регулярка 1) результат: {value} CNY за 1 USDT")
         return value
     
     # Паттерн: "USD1 CNY6.786"
@@ -105,7 +131,7 @@ def get_cny_usdt() -> float | None:
     match = re.search(pattern2, html)
     if match:
         value = float(match.group(1))
-        print(f"✅ CNY→USDT (регулярка 2): {value} CNY за 1 USDT")
+        print(f"✅ CNY→USDT (регулярка 2) результат: {value} CNY за 1 USDT")
         return value
     
     print("❌ CNY→USDT: курс не найден")
