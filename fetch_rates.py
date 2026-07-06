@@ -71,19 +71,17 @@ def get_eur_usdt() -> float | None:
         return None
     
     soup = BeautifulSoup(html, "html.parser")
-    
-    # Ваш точный CSS-селектор
-    selector = CSS_RATE_USD_EUR
-    elements = soup.select(selector)
+    elements = soup.select(CSS_RATE_USD_EUR)
     
     if elements:
         text = elements[0].get_text(strip=True)
         print(f"✅ Элемент найден: '{text}'")
         
-        # Извлекаем число (формат может быть "0,8759" или "0.8759")
-        match = re.search(r"([\d,]+)", text)
-        if match:
-            value_str = match.group(1).replace(",", ".")
+        # Ищем ВСЕ числа в тексте и берём ПОСЛЕДНЕЕ (это и есть курс)
+        numbers = re.findall(r"([\d,]+)", text)
+        if numbers:
+            # Берём последнее число (это курс)
+            value_str = numbers[-1].replace(",", ".")
             try:
                 value = float(value_str)
                 print(f"✅ EUR→USDT: {value} EUR за 1 USDT")
@@ -92,7 +90,7 @@ def get_eur_usdt() -> float | None:
                 print(f"❌ Ошибка преобразования '{value_str}': {e}")
                 return None
         else:
-            print("❌ Число не найдено в тексте")
+            print("❌ Числа не найдены в тексте")
             return None
     else:
         print("❌ Элемент не найден по селектору")
