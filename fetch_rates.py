@@ -15,8 +15,6 @@ URL_USD_CNY = "https://finance.rambler.ru/calculators/converter/1-USD-CNY/"
 
 # CSS-селекторы
 CSS_RATE_RUB_USDT = "#undertable > div.m-hint > span:nth-child(2) > span:nth-child(5) > span"
-# Ваш точный селектор для Wise
-CSS_RATE_USD_EUR = "#calculator > div > div > div.preset--light > div > div > div > div.m-b-3 > div > div > div._midMarketRateAmount_lbutx_138 > span:nth-child(2)"
 CSS_RATE_USD_CNY = "#app > div.dTSkA6xB.commercial-branding > div > div.yP4MAOpL > div.BgJ8We0r.so0OkpgH > div.yw7YVg6D > div.N_cub_8e > div:nth-child(1) > div:nth-child(3) > span.x9LZBMwk"
 
 HEADERS = {
@@ -60,82 +58,38 @@ def get_rub_usdt() -> float | None:
 
 def get_eur_usdt() -> float | None:
     """
-    Парсит курс EUR → USDT с Wise.com по CSS-селектору.
-    Полностью переписанная логика с подробной отладкой.
+    Парсит курс EUR → USDT с Wise.com.
+    Использует регулярное выражение для поиска "1 USD = X,XXXX EUR"
     """
     print("=" * 40)
-    print("🔍 EUR→USDT: НАЧИНАЕМ ПАРСИНГ WISE")
+    print("🔍 EUR→USDT: парсим Wise.com через регулярку")
     print("=" * 40)
     
-    # 1. Загружаем страницу
     html = fetch_url(URL_USD_EUR)
     if not html:
         print("❌ EUR→USDT: страница не загружена")
         return None
     
-    # 2. Сохраняем HTML для отладки (первые 500 символов)
-    print(f"📄 Первые 500 символов HTML:")
-    print("-" * 40)
-    print(html[:500])
-    print("-" * 40)
+    # Ищем паттерн: 1 USD = X,XXXX EUR (или X.XXXX)
+    pattern = r'1\s*USD\s*=\s*([\d,]+)\s*EUR'
+    match = re.search(pattern, html)
     
-    # 3. Парсим с BeautifulSoup
-    soup = BeautifulSoup(html, "html.parser")
-    
-    # 4. Ищем по вашему селектору
-    print(f"🔍 EUR→USDT: ищем по селектору:")
-    print(f"   {CSS_RATE_USD_EUR}")
-    
-    elements = soup.select(CSS_RATE_USD_EUR)
-    
-    # 5. Проверяем результат
-    if not elements:
-        print("❌ EUR→USDT: элемент НЕ НАЙДЕН по селектору")
+    if match:
+        value_str = match.group(1)
+        print(f"✅ Найден курс: '{value_str}'")
         
-        # Пробуем найти похожие элементы для отладки
-        print("🔍 EUR→USDT: ищем все span с классом _midMarketRateAmount...")
-        all_spans = soup.find_all('span', class_=re.compile(r'_midMarketRateAmount'))
-        print(f"   Найдено span с таким классом: {len(all_spans)}")
-        for i, span in enumerate(all_spans[:3]):
-            print(f"   span {i+1}: '{span.get_text(strip=True)}'")
-        
-        # Пробуем найти по атрибуту data-testid
-        print("🔍 EUR→USDT: ищем span с data-testid='mid-market-rate'")
-        testid_spans = soup.select('span[data-testid="mid-market-rate"]')
-        print(f"   Найдено: {len(testid_spans)}")
-        for i, span in enumerate(testid_spans[:3]):
-            print(f"   span {i+1}: '{span.get_text(strip=True)}'")
-        
+        # Заменяем запятую на точку
+        value_str = value_str.replace(",", ".")
+        try:
+            value = float(value_str)
+            print(f"✅ EUR→USDT: {value} EUR за 1 USDT")
+            return value
+        except ValueError as e:
+            print(f"❌ Ошибка преобразования '{value_str}': {e}")
+            return None
+    else:
+        print("❌ EUR→USDT: курс не найден на странице")
         return None
-    
-    # 6. Элемент найден — извлекаем текст
-    text = elements[0].get_text(strip=True)
-    print(f"✅ EUR→USDT: элемент НАЙДЕН!")
-    print(f"🔍 EUR→USDT: текст элемента: '{text}'")
-    print(f"🔍 EUR→USDT: длина текста: {len(text)} символов")
-    print(f"🔍 EUR→USDT: repr текста: {repr(text)}")
-    
-    # 7. Извлекаем число из текста
-    # Пробуем разные паттерны
-    patterns = [
-        r'([\d,]+\.?[\d]*)',  # 0,8760 или 0.8760
-        r'([\d.]+)',          # 0.8760
-        r'([\d,]+)',          # 0,8760
-    ]
-    
-    for i, pattern in enumerate(patterns, 1):
-        match = re.search(pattern, text)
-        if match:
-            value_str = match.group(1).replace(",", ".")
-            try:
-                value = float(value_str)
-                print(f"✅ EUR→USDT: паттерн {i} сработал: {value_str} → {value}")
-                return value
-            except ValueError as e:
-                print(f"⚠️ EUR→USDT: не удалось преобразовать '{value_str}': {e}")
-    
-    print("❌ EUR→USDT: не удалось извлечь число из текста")
-    return None
 
 def get_cny_usdt() -> float | None:
     """Парсит курс USD → CNY с Rambler."""
