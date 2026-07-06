@@ -15,6 +15,7 @@ URL_USD_CNY = "https://finance.rambler.ru/calculators/converter/1-USD-CNY/"
 
 # CSS-селекторы
 CSS_RATE_RUB_USDT = "#undertable > div.m-hint > span:nth-child(2) > span:nth-child(5) > span"
+# Ваш точный селектор для Wise
 CSS_RATE_USD_EUR = "#calculator > div > div > div.preset--light > div > div > div > div.m-b-3 > div > div > div._midMarketRateAmount_lbutx_138 > span:nth-child(2)"
 CSS_RATE_USD_CNY = "#app > div.dTSkA6xB.commercial-branding > div > div.yP4MAOpL > div.BgJ8We0r.so0OkpgH > div.yw7YVg6D > div.N_cub_8e > div:nth-child(1) > div:nth-child(3) > span.x9LZBMwk"
 
@@ -58,39 +59,34 @@ def get_rub_usdt() -> float | None:
 
 def get_eur_usdt() -> float | None:
     """
-    Парсит курс EUR → USDT с Wise.com по CSS-селектору.
+    Парсит курс EUR → USDT с Wise.com по вашему CSS-селектору.
     """
+    print("🔍 EUR→USDT: парсим Wise.com...")
     html = fetch_url(URL_USD_EUR)
     if not html:
         return None
     
     soup = BeautifulSoup(html, "html.parser")
+    
+    # Пробуем ваш селектор
     elements = soup.select(CSS_RATE_USD_EUR)
     
-    if not elements:
-        print("❌ EUR→USDT: элемент не найден по селектору")
-        # Пробуем запасной вариант через регулярку
-        pattern = r'1\s*USD\s*=\s*([\d,]+)\s*EUR'
-        match = re.search(pattern, html)
+    if elements:
+        text = elements[0].get_text(strip=True)
+        print(f"🔍 EUR→USDT текст: '{text}'")
+        
+        # Извлекаем число (может быть "0,8760" или "0.8760")
+        match = re.search(r"([\d,]+)", text)
         if match:
             value_str = match.group(1).replace(",", ".")
             value = float(value_str)
-            print(f"⚠️ EUR→USDT: найден через regex (запасной вариант): {value}")
+            print(f"✅ EUR→USDT: {value} EUR за 1 USDT")
             return value
-        return None
-    
-    text = elements[0].get_text(strip=True)
-    print(f"🔍 EUR→USDT (CSS) текст: '{text}'")
-    
-    # Извлекаем число из текста (может быть "0,8760" или "0.8760")
-    match = re.search(r"([\d,]+)", text)
-    if match:
-        value_str = match.group(1).replace(",", ".")
-        value = float(value_str)
-        print(f"✅ EUR→USDT: {value} EUR за 1 USDT")
-        return value
+        else:
+            print("❌ EUR→USDT: число не найдено в тексте")
+            return None
     else:
-        print("❌ EUR→USDT: число не найдено в тексте элемента")
+        print("❌ EUR→USDT: элемент не найден по селектору")
         return None
 
 def get_cny_usdt() -> float | None:
